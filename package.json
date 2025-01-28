@@ -1,0 +1,21 @@
+{
+  "name": "gpt-operator",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "devDependencies": {
+    "electron": "^34.0.1"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "openai": "^4.80.1"
+  }
+}
