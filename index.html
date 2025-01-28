@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>OpenAI Operator Like</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      header {
+        background-color: #333;
+        color: #fff;
+        padding: 0.5rem 1rem;
+      }
+      .container {
+        flex: 1;
+        display: flex;
+      }
+      /* Chat panel styling */
+      .chat-panel {
+        width: 400px;
+        border-right: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+      }
+      .message-log {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+      }
+      .chat-input {
+        display: flex;
+        border-top: 1px solid #ccc;
+      }
+      .chat-input textarea {
+        flex: 1;
+        resize: none;
+        padding: 0.5rem;
+      }
+      .chat-input button {
+        width: 80px;
+        cursor: pointer;
+      }
+      /* Browser panel styling */
+      .browser-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .browser-nav {
+        display: flex;
+        border-bottom: 1px solid #ccc;
+        padding: 0.5rem;
+      }
+      .browser-nav input {
+        flex: 1;
+        margin-right: 0.5rem;
+        padding: 0.5rem;
+      }
+      .browser-nav button {
+        width: 60px;
+        cursor: pointer;
+      }
+      .iframe-wrapper {
+        flex: 1;
+        position: relative;
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      /* Basic message styling */
+      .user-message {
+        text-align: right;
+        margin-bottom: 1rem;
+      }
+      .assistant-message {
+        text-align: left;
+        margin-bottom: 1rem;
+        background-color: #f4f4f4;
+        border-radius: 5px;
+        padding: 0.5rem;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>OpenAI Operator-Like Chat + Browser</h2>
+    </header>
+
+    <div class="container">
+      <!-- Chat Panel -->
+      <div class="chat-panel">
+        <div class="message-log" id="messageLog">
+          <!-- messages go here -->
+        </div>
+        <div class="chat-input">
+          <textarea
+            id="chatInput"
+            rows="2"
+            placeholder="Type your message..."
+          ></textarea>
+          <button id="sendBtn">Send</button>
+        </div>
+      </div>
+
+      <!-- Browser Panel -->
+      <div class="browser-panel">
+        <div class="browser-nav">
+          <input id="urlInput" type="text" value="https://www.example.com" />
+          <button id="goBtn">Go</button>
+        </div>
+        <div class="iframe-wrapper">
+          <iframe
+            id="browserFrame"
+            src="https://www.example.com"
+            sandbox="allow-same-origin allow-scripts allow-popups"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Chat references
+      const messageLog = document.getElementById("messageLog");
+      const chatInput = document.getElementById("chatInput");
+      const sendBtn = document.getElementById("sendBtn");
+
+      // Browser references
+      const urlInput = document.getElementById("urlInput");
+      const goBtn = document.getElementById("goBtn");
+      const browserFrame = document.getElementById("browserFrame");
+
+      // Array to store chat conversation
+      const conversation = [];
+
+      // Render messages
+      function renderConversation() {
+        messageLog.innerHTML = conversation
+          .map((msg) => {
+            if (msg.role === "user") {
+              return `<div class="user-message"><strong>You:</strong> ${msg.content}</div>`;
+            } else {
+              // assistant
+              return `<div class="assistant-message"><strong>AI:</strong> ${msg.content}</div>`;
+            }
+          })
+          .join("");
+        messageLog.scrollTop = messageLog.scrollHeight;
+      }
+
+      // Send message to AI
+      async function sendMessage() {
+        const userText = chatInput.value.trim();
+        if (!userText) return;
+        // Push user message to conversation
+        conversation.push({ role: "user", content: userText });
+        renderConversation();
+        chatInput.value = "";
+
+        // Call the main process via the preload script
+        const aiResponse = await window.electronAPI.chatWithOpenAI(userText);
+
+        // Push assistant response
+        conversation.push({ role: "assistant", content: aiResponse });
+        renderConversation();
+      }
+
+      sendBtn.addEventListener("click", sendMessage);
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Mini browser logic
+      goBtn.addEventListener("click", () => {
+        const url = urlInput.value.trim();
+        if (!url) return;
+        browserFrame.src = url;
+      });
+    </script>
+  </body>
+</html>
